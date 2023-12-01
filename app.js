@@ -10,6 +10,10 @@ dotenv.config();
 
 const app = express();
 
+app.get('/', (req, res) => {
+    res.send('Hello Infra-Bnei-Brak Team! This is our Express server.');
+});
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
