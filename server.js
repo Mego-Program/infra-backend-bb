@@ -1,5 +1,5 @@
 import http from "http";
-import app from "./app.js";
+import app from "./index.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -13,5 +13,3 @@ if(!process.env.IS_VERCEL){
       console.log(`Server running on port: ${port}`);
   })
 }
-
-export default app; 
