@@ -28,30 +28,25 @@ async function insertUser(data) {
         console.log(`${result._id} document inserted.`);
         return true;
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Insertion attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+        if (e.name === 'ValidationError' && e.errors.email) {
+            // Handle the email validation error
+            const errorMessage = e.errors.email.message;
+            console.error('Email validation error:', errorMessage);
+            throw new Error(errorMessage);
         } else {
-            if (e.name === 'ValidationError' && e.errors.email) {
-                // Handle the email validation error
-                const errorMessage = e.errors.email.message;
-                console.error('Email validation error:', errorMessage);
-                throw new Error(errorMessage);
-            } else {
-                console.error('Error while inserting user:', e);
-                throw new Error('User insertion failed');
-            }
+            console.error('Error while inserting user:', e);
+            throw new Error('User insertion failed');
         }
     }
-}
+};
 
 
 async function updateUserTitle(token, title) {
     try {
-        const decoded = jwt.verify(token, jwtSecret);
+        // const decoded = jwt.verify(token, jwtSecret);
+        const user = await getUserByToken(token);
 
-        const filter = { email: decoded.email };
+        const filter = { email: user.email };
         const update = { title: title.title };
 
         // Add the { runValidators: true } option to enforce schema validation
@@ -65,16 +60,10 @@ async function updateUserTitle(token, title) {
 
         return true;
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred: ' + e);
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred: ' + e);
     }
-}
+};
 
 
 async function getUserByToken(token) {
@@ -84,25 +73,19 @@ async function getUserByToken(token) {
         const query = {
             email: decoded.email
         };
-        const documents = await User.findOne( query, { isDelete: false }).select('-password');
+        const user = await User.findOne( query, { isDelete: false }).select('-password');
 
-        if (!documents) {
+        if (!user) {
             return false;
         } else {
-            console.log('This user already exists');
-            return documents;
+            console.log(user.email, 1111);
+            return user;
         }
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred: ' + e);
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred: ' + e);
     }
-}
+};
 
 
 async function getUserByEmail(data) {
@@ -110,8 +93,7 @@ async function getUserByEmail(data) {
         const query = {
             email: data.email
         };
-        const documents = await User.findOne({ query, isDeleted: false }).select('-password');
-
+        const documents = await User.findOne(query, {isDeleted: false }).select('-password');
         if (!documents) {
             return false;
         } else {
@@ -119,16 +101,10 @@ async function getUserByEmail(data) {
             return documents;
         }
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred: ' + e);
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred: ' + e);
     }
-}
+};
 
 
 async function UserByCriteria(data) {
@@ -150,16 +126,10 @@ async function UserByCriteria(data) {
             return documents; // User exists
         }
     } catch (e) {
-        if (e instanceof MongoError && e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred during the query.');
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred during the query.');
     }
-}
+};
 
 
 async function getAllUsers(data) {
@@ -172,16 +142,10 @@ async function getAllUsers(data) {
             return documents;
         }
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred: ' + e);
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred: ' + e);
     }
-}
+};
 
 
 async function profileUpdate(data, token) {
@@ -222,16 +186,10 @@ async function profileUpdate(data, token) {
         delete update.password;
         return update;
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred: ' + e);
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred: ' + e);
     }
-}
+};
 
 
 async function deleteProfile(token) {
@@ -251,14 +209,8 @@ async function deleteProfile(token) {
         }
         return true;
     } catch (e) {
-        if (e.message.includes('buffering timed out')) {
-            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
-        } else {
-            console.error('Error while querying users:', e);
-            throw new Error('An error occurred: ' + e);
-        }
+        console.error('Error while querying users:', e);
+        throw new Error('An error occurred: ' + e);
     }
 };
 
