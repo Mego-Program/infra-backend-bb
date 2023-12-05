@@ -84,8 +84,7 @@ async function getUserByToken(token) {
         const query = {
             email: decoded.email
         };
-
-        const documents = await User.findOne(query).select('-password');
+        const documents = await User.findOne( query, { isDelete: false }).select('-password');
 
         if (!documents) {
             return false;
@@ -111,8 +110,7 @@ async function getUserByEmail(data) {
         const query = {
             email: data.email
         };
-
-        const documents = await User.findOne(query).select('-password');
+        const documents = await User.findOne({ query, isDeleted: false }).select('-password');
 
         if (!documents) {
             return false;
@@ -143,8 +141,7 @@ async function UserByCriteria(data) {
                 { lastName: { $regex: new RegExp(data.lastName, 'i') } }
             ]
         };
-
-        const documents = await User.find(query).select('-password');
+        const documents = await User.find( query, { isDeleted: false }).select('-password');
 
         if (!documents) {
             return null; // User doesn't exist
@@ -167,7 +164,8 @@ async function UserByCriteria(data) {
 
 async function getAllUsers(data) {
     try {
-        const documents = await User.find().select('-password');
+        const documents = await User.find({ isDeleted: false }).select('-password');
+
         if (!documents) {
             return false;
         } else {
@@ -184,6 +182,7 @@ async function getAllUsers(data) {
         }
     }
 }
+
 
 async function profileUpdate(data, token) {
     try {
@@ -234,6 +233,35 @@ async function profileUpdate(data, token) {
     }
 }
 
+
+async function deleteProfile(token) {
+    try {
+        const decoded = jwt.verify(token, jwtSecret);
+
+        const filter = { email: decoded.email };
+        const update = { isDeleted: true };
+
+        // Add the { runValidators: true } option to enforce schema validation
+        const result = await User.findOneAndUpdate(filter, update, { runValidators: true });
+        console.log(result);
+        if (!result) {
+            // Handle the case where no user was found with the provided email
+            console.error("User not found");
+            return false;
+        }
+        return true;
+    } catch (e) {
+        if (e.message.includes('buffering timed out')) {
+            console.warn(`Query attempt ${retries + 1} timed out. Retrying...`);
+            retries++;
+            await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+        } else {
+            console.error('Error while querying users:', e);
+            throw new Error('An error occurred: ' + e);
+        }
+    }
+};
+
 export {
     insertUser,
     updateUserTitle,
@@ -241,5 +269,6 @@ export {
     getUserByEmail,
     UserByCriteria,
     getAllUsers,
-    profileUpdate
+    profileUpdate,
+    deleteProfile
 }

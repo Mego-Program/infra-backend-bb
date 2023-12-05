@@ -7,7 +7,8 @@ import {
     getUserByEmail,
     UserByCriteria,
     getAllUsers,
-    profileUpdate
+    profileUpdate,
+    deleteProfile
 } from "../services/userDBOperationsServices.js";
 
 
@@ -138,11 +139,14 @@ const profileUpdateController = async (req, res) => {
     connectToDatabase();
     const token = req.headers.authorization;
     const data = req.body;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const errorMessages = errors.array().map(error => error.msg);
-        return res.status(400).json({ errors: errorMessages });
-    }
+    if (!data.email === undefined || !data.password === undefined) {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            const errorMessages = errors.array().map(error => error.msg);
+            return res.status(400).json({ errors: errorMessages });
+        }
+    };
     try {
         const success = await profileUpdate(data, token);
         if (success) {
@@ -150,6 +154,25 @@ const profileUpdateController = async (req, res) => {
         } else {
             return res.status(400).json({ error: 'User update failed' });
         }
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+};
+
+
+const deleteProfileController = async (req, res) => {
+    try {
+        connectToDatabase();
+        const token = req.headers.authorization;
+
+        const result = await deleteProfile(token)
+        if (result) {
+            console.log("Your account has been successfully deleted");
+            return res.status(200).json({ message: "Your account has been successfully deleted" });
+        }
+        return res.status(400).send({
+            massage: "Username does not exist, you can register!"
+        });
     } catch (error) {
         return res.status(400).json({ error: error.message });
     }
@@ -163,5 +186,6 @@ export {
     getAllUsersController,
     getUserController,
     UserByCriteriaController,
-    profileUpdateController
+    profileUpdateController,
+    deleteProfileController
 }
