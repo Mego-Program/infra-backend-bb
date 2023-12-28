@@ -26,6 +26,7 @@ async function loginUser(data) {
                 const expiresIn = 864000000000; // 24 hour
 
                 const payload = {
+                    id: documents.id,
                     email: data.email,
                     timestamp: Date.now(),
                 };
