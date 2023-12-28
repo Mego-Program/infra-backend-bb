@@ -21,7 +21,6 @@ async function insertUser(data) {
             lastName: data.lastName,
             email: data.email,
             password: password,
-            profilePicture: '' 
         });
 
         const result = (await user.save());
