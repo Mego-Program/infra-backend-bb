@@ -21,6 +21,7 @@ async function insertUser(data) {
             lastName: data.lastName,
             email: data.email,
             password: password,
+            profilePicture: '' 
         });
 
         const result = (await user.save());
@@ -185,6 +186,10 @@ async function profileUpdate(data, token) {
         if (data.password) {
             const password = await bcrypt.hash(data.password, 10);
             update.password = password;
+        }
+
+        if (data.profilePicture) {
+            update.profilePicture = data.profilePicture;
         }
 
         // Add the { runValidators: true } option to enforce schema validation
