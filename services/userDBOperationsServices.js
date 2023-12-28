@@ -187,6 +187,10 @@ async function profileUpdate(data, token) {
             update.password = password;
         }
 
+        if (data.profilePicture) {
+            update.profilePicture = data.profilePicture;
+        }
+
         // Add the { runValidators: true } option to enforce schema validation
         const result = await User.findOneAndUpdate(filter, update, { runValidators: true }).select('-password');
         if (!result) {

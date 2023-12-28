@@ -8,7 +8,7 @@ import {
     UserByCriteria,
     getListUsers,
     profileUpdate,
-    deleteProfile
+    deleteProfile,
 } from "../services/userDBOperationsServices.js";
 
 
@@ -187,5 +187,5 @@ export {
     getUserController,
     UserByCriteriaController,
     profileUpdateController,
-    deleteProfileController
+    deleteProfileController,
 }
